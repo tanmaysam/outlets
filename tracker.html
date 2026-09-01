@@ -93,14 +93,16 @@
     <div id="dashboardContainer"></div>
   </div>
 
-  <!-- SELECT DATE & ASSOCIATES -->
+    <!-- SELECT DATE & ASSOCIATES -->
   <div class="card">
     <div class="card-title">Select date & associates</div>
-    <div style="display: grid; grid-template-columns: 0.8fr 0.8fr; gap: 10px; margin-bottom: 10px;">
-      <div><label>Date</label><input type="date" id="trackDate" /></div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
       <div>
-        <label>Select Associate</label>
-        <select id="associateSelect" onchange="selectAssociateFromDropdown()">
+        <label>Date</label>
+        <input type="date" id="trackDate" />
+      </div>
+      <div style="display: flex; align-items: flex-end;">
+        <select id="associateSelect" style="width: 100%;" onchange="selectAssociateFromDropdown()">
           <option value="">-- Choose Associate --</option>
           <option value="Fabricio Justiniano">Fabricio Justiniano</option>
           <option value="Marizabeth Marquez">Marizabeth Marquez</option>
