@@ -155,6 +155,31 @@
     <div id="summaryContainer"></div>
   </div>
 
+  <!-- BREAK TRACKING -->
+  <div class="card">
+    <div class="card-title">Break Management</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <label>Associate</label>
+        <select id="breakAssociate">
+          <option value="">Select associate</option>
+          <option value="Fabricio Justiniano">Fabricio Justiniano</option>
+          <option value="Marizabeth Marquez">Marizabeth Marquez</option>
+          <option value="Ivey Carthorn">Ivey Carthorn</option>
+          <option value="Lezlieth Gil">Lezlieth Gil</option>
+          <option value="Odalys Aponte">Odalys Aponte</option>
+          <option value="Maurice Kicklighter">Maurice Kicklighter</option>
+          <option value="Nathaniel Brown">Nathaniel Brown</option>
+          <option value="Steven Cox">Steven Cox</option>
+        </select>
+      </div>
+      <div style="display: flex; align-items: flex-end;">
+        <button class="success" onclick="startBreakForm()" style="width: 100%; background: #FFA500; border-color: #FFA500;">Start Break</button>
+      </div>
+    </div>
+    <div id="breakStatusContainer" style="margin-top: 12px;"></div>
+  </div>
+
   <!-- LEADERBOARD -->
   <div class="card">
     <div class="card-title">Associate Leaderboard</div>
@@ -332,7 +357,10 @@
   }
 
   function startTask(assoc, isBreak = false) {
-    const taskDesc = document.getElementById(`taskDesc_${assoc}`).value.trim();
+    const taskDescEl = document.getElementById(`taskDesc_${assoc}`);
+    if (!taskDescEl) return;
+    
+    const taskDesc = taskDescEl.value.trim();
     const errorEl = document.getElementById(`error_${assoc}`);
     if (!errorEl) return;
     errorEl.textContent = '';
@@ -340,12 +368,25 @@
     if (!taskDesc) { errorEl.textContent = 'Enter task description'; return; }
 
     const time = getCurrentTime();
-    runningTasks[assoc] = { desc: taskDesc, startTime: `${time.hours}:${time.minutes}:${time.seconds}`, startHour: time.hours, startMin: time.minutes, startSec: time.seconds, blocker: document.getElementById(`blockerType_${assoc}`).value, blockerText: document.getElementById(`blockerText_${assoc}`).value, isBreak: isBreak };
+    const blockerEl = document.getElementById(`blockerType_${assoc}`);
+    const blockerTextEl = document.getElementById(`blockerText_${assoc}`);
+    
+    runningTasks[assoc] = { 
+      desc: taskDesc, 
+      startTime: `${time.hours}:${time.minutes}:${time.seconds}`, 
+      startHour: time.hours, 
+      startMin: time.minutes, 
+      startSec: time.seconds, 
+      blocker: blockerEl ? blockerEl.value : '', 
+      blockerText: blockerTextEl ? blockerTextEl.value : '', 
+      isBreak: isBreak 
+    };
     
     const startDisplay = document.getElementById(`startDisplay_${assoc}`);
     if (startDisplay) {
       startDisplay.classList.remove('hidden');
-      document.getElementById(`startTimeShow_${assoc}`).textContent = runningTasks[assoc].startTime;
+      const timeShow = document.getElementById(`startTimeShow_${assoc}`);
+      if (timeShow) timeShow.textContent = runningTasks[assoc].startTime;
     }
     updateDisplay();
   }
@@ -386,17 +427,28 @@
   }
 
   function openEditModal(assoc, taskId) {
-    const dateKey = getDateKey(assoc);
-    const task = allData[dateKey].tasks.find(t => t.id === taskId);
+    const dateKey = `${document.getElementById('trackDate').value}|${assoc}`;
+    const data = allData[dateKey];
+    if (!data || !data.tasks) return;
+    
+    const task = data.tasks.find(t => t.id === taskId);
     if (!task) return;
     
     editingTask = { assoc, taskId, dateKey };
-    document.getElementById('editDesc').value = task.desc;
-    document.getElementById('editStart').value = task.start;
-    document.getElementById('editEnd').value = task.end;
-    document.getElementById('editType').value = task.isBreak ? 'break' : 'task';
-    document.getElementById('editBlocker').value = task.blocker || '';
-    document.getElementById('editModal').classList.add('active');
+    const editDesc = document.getElementById('editDesc');
+    const editStart = document.getElementById('editStart');
+    const editEnd = document.getElementById('editEnd');
+    const editType = document.getElementById('editType');
+    const editBlocker = document.getElementById('editBlocker');
+    
+    if (editDesc) editDesc.value = task.desc;
+    if (editStart) editStart.value = task.start;
+    if (editEnd) editEnd.value = task.end;
+    if (editType) editType.value = task.isBreak ? 'break' : 'task';
+    if (editBlocker) editBlocker.value = task.blocker || '';
+    
+    const modal = document.getElementById('editModal');
+    if (modal) modal.classList.add('active');
   }
 
   function closeEditModal() {
@@ -420,13 +472,59 @@
     updateDisplay();
   }
 
-  function deleteTask() {
-    if (!editingTask) return;
-    if (!confirm('Delete this task?')) return;
+  function startBreakForm() {
+    const assoc = document.getElementById('breakAssociate').value;
+    if (!assoc) { alert('Select an associate'); return; }
     
-    allData[editingTask.dateKey].tasks = allData[editingTask.dateKey].tasks.filter(t => t.id !== editingTask.taskId);
+    const dateKey = `${document.getElementById('trackDate').value}|${assoc}`;
+    const time = getCurrentTime();
+    
+    runningTasks[assoc] = { desc: 'Break', startTime: `${time.hours}:${time.minutes}:${time.seconds}`, startHour: time.hours, startMin: time.minutes, startSec: time.seconds, blocker: '', blockerText: '', isBreak: true };
+    
+    document.getElementById('breakAssociate').value = '';
+    updateBreakStatus();
+  }
+
+  function updateBreakStatus() {
+    const breakAssocs = Object.keys(runningTasks).filter(assoc => runningTasks[assoc].isBreak);
+    
+    if (breakAssocs.length === 0) {
+      document.getElementById('breakStatusContainer').innerHTML = '';
+      return;
+    }
+    
+    const html = breakAssocs.map(assoc => `
+      <div class="running-task">
+        <div class="running-task-info">
+          <p class="running-task-name">${assoc} - Break</p>
+          <p class="running-task-details">Started: ${runningTasks[assoc].startTime}</p>
+        </div>
+        <button onclick="endBreak('${assoc}')">End Break</button>
+      </div>
+    `).join('');
+    
+    document.getElementById('breakStatusContainer').innerHTML = html;
+  }
+
+  function endBreak(assoc) {
+    if (!runningTasks[assoc]) { alert('Break not started'); return; }
+
+    const time = getCurrentTime();
+    const endTime = `${time.hours}:${time.minutes}:${time.seconds}`;
+    const startSec = parseInt(runningTasks[assoc].startHour) * 3600 + parseInt(runningTasks[assoc].startMin) * 60 + parseInt(runningTasks[assoc].startSec);
+    const endSec = parseInt(time.hours) * 3600 + parseInt(time.minutes) * 60 + parseInt(time.seconds);
+    
+    if (endSec <= startSec) { alert('End time must be after start'); return; }
+
+    const minutes = Math.round((endSec - startSec) / 60);
+    const dateKey = `${document.getElementById('trackDate').value}|${assoc}`;
+    if (!allData[dateKey]) allData[dateKey] = { associate: assoc, date: document.getElementById('trackDate').value, tasks: [] };
+    
+    allData[dateKey].tasks.push({ desc: 'Break', start: runningTasks[assoc].startTime, end: endTime, minutes, blocker: '', isBreak: true, id: Date.now() });
+    
+    delete runningTasks[assoc];
+    document.getElementById('breakStatusContainer').innerHTML = '';
     saveData();
-    closeEditModal();
     updateDisplay();
   }
 
@@ -562,7 +660,6 @@
           <div id="error_${assoc}" class="error"></div>
           <div style="display: flex; gap: 8px; margin-top: 12px;">
             <button class="success" onclick="startTask('${assoc}')" style="flex: 1;" ${isRunning ? 'disabled' : ''}>Start task</button>
-            <button style="background: #FFA500; color: white; border-color: #FFA500;" onclick="startTask('${assoc}', true)" style="flex: 1;" ${isRunning ? 'disabled' : ''}>Start break</button>
             <button class="danger-filled" onclick="endTask('${assoc}')" style="flex: 1;" ${!isRunning ? 'disabled' : ''}>End</button>
           </div>
 
