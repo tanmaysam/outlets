@@ -245,6 +245,7 @@
 <script>
   const STORAGE_KEY = 'utilization_tracker_data';
   const TEMPLATES_KEY = 'task_templates';
+  const RUNNING_TASKS_KEY = 'running_tasks';
   const ASSOCIATES = ['Fabricio Justiniano', 'Marizabeth Marquez', 'Ivey Carthorn', 'Lezlieth Gil', 'Odalys Aponte', 'Maurice Kicklighter', 'Nathaniel Brown', 'Steven Cox'];
   let allData = {};
   let selectedAssociates = [];
@@ -261,6 +262,7 @@
     document.getElementById('filterDate').addEventListener('change', updateDisplay);
     loadData();
     loadTemplates();
+    loadRunningTasks();
     updateDisplay();
   }
 
@@ -305,6 +307,23 @@
       localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
     } catch (e) {
       console.error('Template save failed', e);
+    }
+  }
+
+  function saveRunningTasks() {
+    try {
+      localStorage.setItem(RUNNING_TASKS_KEY, JSON.stringify(runningTasks));
+    } catch (e) {
+      console.error('Running tasks save failed', e);
+    }
+  }
+
+  function loadRunningTasks() {
+    try {
+      const saved = localStorage.getItem(RUNNING_TASKS_KEY);
+      runningTasks = saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      runningTasks = {};
     }
   }
 
@@ -373,6 +392,7 @@
       const timeShow = document.getElementById(`startTimeShow_${assoc}`);
       if (timeShow) timeShow.textContent = runningTasks[assoc].startTime;
     }
+    saveRunningTasks();
     updateDisplay();
   }
 
@@ -408,6 +428,7 @@
     
     delete runningTasks[assoc];
     saveData();
+    saveRunningTasks();
     updateDisplay();
   }
 
@@ -425,12 +446,26 @@
     const editEnd = document.getElementById('editEnd');
     const editType = document.getElementById('editType');
     const editBlocker = document.getElementById('editBlocker');
+    const editBlockerText = document.getElementById('editBlockerText');
     
     if (editDesc) editDesc.value = task.desc;
     if (editStart) editStart.value = task.start;
     if (editEnd) editEnd.value = task.end;
     if (editType) editType.value = task.isBreak ? 'break' : 'task';
-    if (editBlocker) editBlocker.value = task.blocker || '';
+    
+    if (editBlocker) {
+      if (task.blocker && task.blocker.startsWith('other:')) {
+        editBlocker.value = 'other';
+        const customText = task.blocker.replace('other: ', '');
+        if (editBlockerText) editBlockerText.value = customText;
+        const inputRow = document.getElementById('editBlockerInputRow');
+        if (inputRow) inputRow.classList.remove('hidden');
+      } else {
+        editBlocker.value = task.blocker || '';
+        const inputRow = document.getElementById('editBlockerInputRow');
+        if (inputRow) inputRow.classList.add('hidden');
+      }
+    }
     
     const modal = document.getElementById('editModal');
     if (modal) modal.classList.add('active');
@@ -441,16 +476,38 @@
     editingTask = null;
   }
 
+  function toggleEditBlockerInput() {
+    const blocker = document.getElementById('editBlocker').value;
+    const inputRow = document.getElementById('editBlockerInputRow');
+    if (blocker === 'other') {
+      inputRow.classList.remove('hidden');
+    } else {
+      inputRow.classList.add('hidden');
+      document.getElementById('editBlockerText').value = '';
+    }
+  }
+
   function saveEditTask() {
     if (!editingTask) return;
-    const task = allData[editingTask.dateKey].tasks.find(t => t.id === editingTask.taskId);
+    const data = allData[editingTask.dateKey];
+    if (!data || !data.tasks) return;
+    
+    const task = data.tasks.find(t => t.id === editingTask.taskId);
     if (!task) return;
     
     task.desc = document.getElementById('editDesc').value;
     task.start = document.getElementById('editStart').value;
     task.end = document.getElementById('editEnd').value;
     task.isBreak = document.getElementById('editType').value === 'break';
-    task.blocker = document.getElementById('editBlocker').value;
+    
+    const editBlocker = document.getElementById('editBlocker').value;
+    const editBlockerText = document.getElementById('editBlockerText');
+    
+    if (editBlocker === 'other' && editBlockerText) {
+      task.blocker = `other: ${editBlockerText.value}`;
+    } else {
+      task.blocker = editBlocker;
+    }
     
     saveData();
     closeEditModal();
@@ -467,6 +524,7 @@
     runningTasks[assoc] = { desc: 'Break', startTime: `${time.hours}:${time.minutes}:${time.seconds}`, startHour: time.hours, startMin: time.minutes, startSec: time.seconds, blocker: '', blockerText: '', isBreak: true };
     
     document.getElementById('breakAssociate').value = '';
+    saveRunningTasks();
     updateBreakStatus();
   }
 
@@ -509,6 +567,7 @@
     
     delete runningTasks[assoc];
     saveData();
+    saveRunningTasks();
     updateBreakStatus();
     updateDisplay();
   }
