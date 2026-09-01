@@ -11,8 +11,8 @@
   
   .form-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
   label { display: block; font-size: 12px; color: #5f5e5a; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
-  input[type="date"] { width: 100%; padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; font-size: 15px; background: white; color: #2c2c2a; }
-  input[type="date"]:focus { outline: none; border-color: #888780; background: white; }
+  input[type="date"], select, input[type="text"], input[type="time"] { width: 100%; padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; font-size: 15px; background: white; color: #2c2c2a; }
+  input[type="date"]:focus, select:focus, input[type="text"]:focus, input[type="time"]:focus { outline: none; border-color: #888780; background: white; }
   
   .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
   .checkbox-item { display: flex; align-items: center; gap: 10px; padding: 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; background: white; cursor: pointer; transition: all 0.2s; }
@@ -31,13 +31,13 @@
   button.success:hover { background: #085041; }
   button.danger-filled { background: #A32D2D; color: white; border-color: #A32D2D; font-weight: 600; }
   button.danger-filled:hover { background: #791F1F; }
+  button.small { padding: 6px 10px; font-size: 11px; }
   
   .running-task { background: #E1F5EE; border: 0.5px solid #0F6E56; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
   .running-task-info { flex: 1; }
   .running-task-name { font-size: 14px; font-weight: 600; color: #2c2c2a; margin: 0; }
   .running-task-details { font-size: 12px; color: #5f5e5a; margin: 4px 0 0 0; }
   .running-task button { background: #A32D2D; color: white; border-color: #A32D2D; font-weight: 600; padding: 8px 12px; font-size: 12px; }
-  .running-task button:hover { background: #791F1F; }
   
   .time-display { font-size: 14px; font-weight: 600; color: #2c2c2a; background: #f1efe8; padding: 8px 12px; border-radius: 4px; margin-top: 6px; }
   .time-label { font-size: 11px; color: #888780; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -55,6 +55,7 @@
   .task-info { flex: 1; }
   .task-name { font-size: 14px; font-weight: 500; color: #2c2c2a; margin: 0; }
   .task-time { font-size: 12px; color: #5f5e5a; margin: 4px 0 0 0; }
+  .task-actions { display: flex; gap: 6px; }
   
   .empty-state { text-align: center; padding: 24px; color: #888780; }
   .empty-state-icon { font-size: 32px; margin-bottom: 8px; }
@@ -62,13 +63,22 @@
   .hidden { display: none; }
   
   .button-group-col { display: flex; flex-direction: column; gap: 8px; }
-  button { flex: 1; }
   
-  select { width: 100%; padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; font-size: 15px; background: white; color: #2c2c2a; margin-bottom: 12px; }
-  select:focus { outline: none; border-color: #888780; }
+  .template-btn { padding: 8px 12px; font-size: 12px; background: #f1efe8; border: 0.5px solid #d3d1c7; cursor: pointer; margin: 4px 4px 4px 0; border-radius: 4px; }
+  .template-btn:hover { background: #e0ddd4; }
   
-  input[type="text"] { width: 100%; padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; font-size: 15px; background: white; color: #2c2c2a; margin-bottom: 12px; }
-  input[type="text"]:focus { outline: none; border-color: #888780; background: white; }
+  .leaderboard-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 0.5px solid #d3d1c7; }
+  .leaderboard-name { font-weight: 500; }
+  .leaderboard-util { font-size: 18px; font-weight: 600; color: #0F6E56; }
+  
+  .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
+  .modal.active { display: flex; align-items: center; justify-content: center; }
+  .modal-content { background: white; padding: 24px; border-radius: 8px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .modal-close { float: right; font-size: 24px; cursor: pointer; color: #888780; }
+  .modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
+  
+  .break-badge { background: #FFA500; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
 </style>
 
 <div class="container">
@@ -77,6 +87,13 @@
     <p class="subtitle">Track multiple associates with parallel tasks</p>
   </div>
 
+  <!-- QUICK STATS DASHBOARD -->
+  <div class="card">
+    <div class="card-title">Today's Overview</div>
+    <div id="dashboardContainer"></div>
+  </div>
+
+  <!-- SELECT DATE & ASSOCIATES -->
   <div class="card">
     <div class="card-title">Select date & associates</div>
     <div class="form-row">
@@ -87,35 +104,35 @@
         <label>Associates (tap to select)</label>
         <div class="checkbox-grid">
           <label class="checkbox-item" id="checkbox_Fabricio Justiniano" onclick="toggleAssociate('Fabricio Justiniano'); return false;">
-            <input type="checkbox" id="check_Fabricio Justiniano" value="Fabricio Justiniano" />
+            <input type="checkbox" id="check_Fabricio Justiniano" />
             <span class="checkbox-label">Fabricio Justiniano</span>
           </label>
           <label class="checkbox-item" id="checkbox_Marizabeth Marquez" onclick="toggleAssociate('Marizabeth Marquez'); return false;">
-            <input type="checkbox" id="check_Marizabeth Marquez" value="Marizabeth Marquez" />
+            <input type="checkbox" id="check_Marizabeth Marquez" />
             <span class="checkbox-label">Marizabeth Marquez</span>
           </label>
           <label class="checkbox-item" id="checkbox_Ivey Carthorn" onclick="toggleAssociate('Ivey Carthorn'); return false;">
-            <input type="checkbox" id="check_Ivey Carthorn" value="Ivey Carthorn" />
+            <input type="checkbox" id="check_Ivey Carthorn" />
             <span class="checkbox-label">Ivey Carthorn</span>
           </label>
           <label class="checkbox-item" id="checkbox_Lezlieth Gil" onclick="toggleAssociate('Lezlieth Gil'); return false;">
-            <input type="checkbox" id="check_Lezlieth Gil" value="Lezlieth Gil" />
+            <input type="checkbox" id="check_Lezlieth Gil" />
             <span class="checkbox-label">Lezlieth Gil</span>
           </label>
           <label class="checkbox-item" id="checkbox_Odalys Aponte" onclick="toggleAssociate('Odalys Aponte'); return false;">
-            <input type="checkbox" id="check_Odalys Aponte" value="Odalys Aponte" />
+            <input type="checkbox" id="check_Odalys Aponte" />
             <span class="checkbox-label">Odalys Aponte</span>
           </label>
           <label class="checkbox-item" id="checkbox_Maurice Kicklighter" onclick="toggleAssociate('Maurice Kicklighter'); return false;">
-            <input type="checkbox" id="check_Maurice Kicklighter" value="Maurice Kicklighter" />
+            <input type="checkbox" id="check_Maurice Kicklighter" />
             <span class="checkbox-label">Maurice Kicklighter</span>
           </label>
           <label class="checkbox-item" id="checkbox_Nathaniel Brown" onclick="toggleAssociate('Nathaniel Brown'); return false;">
-            <input type="checkbox" id="check_Nathaniel Brown" value="Nathaniel Brown" />
+            <input type="checkbox" id="check_Nathaniel Brown" />
             <span class="checkbox-label">Nathaniel Brown</span>
           </label>
           <label class="checkbox-item" id="checkbox_Steven Cox" onclick="toggleAssociate('Steven Cox'); return false;">
-            <input type="checkbox" id="check_Steven Cox" value="Steven Cox" />
+            <input type="checkbox" id="check_Steven Cox" />
             <span class="checkbox-label">Steven Cox</span>
           </label>
         </div>
@@ -123,53 +140,121 @@
     </div>
   </div>
 
+  <!-- RUNNING TASKS -->
   <div class="card" id="runningTasksCard" style="display: none;">
     <div class="card-title">Currently running tasks</div>
     <div id="runningTasksList"></div>
   </div>
 
+  <!-- ASSOCIATE SECTIONS -->
   <div id="associateSections"></div>
 
+  <!-- DAILY SUMMARY -->
   <div class="card">
     <div class="card-title">Daily summary</div>
     <div id="summaryContainer"></div>
   </div>
 
+  <!-- LEADERBOARD -->
   <div class="card">
-    <div class="card-title">All tasks today</div>
+    <div class="card-title">Associate Leaderboard</div>
+    <div id="leaderboardContainer"></div>
+  </div>
+
+  <!-- ALL TASKS -->
+  <div class="card">
+    <div class="card-title">All tasks</div>
     <div class="form-row">
       <div><label>Filter by date</label><input type="date" id="filterDate" /></div>
     </div>
     <div id="allTasksList"></div>
   </div>
 
+  <!-- EXPORT -->
   <div class="card">
-    <div class="card-title">Data export & backup</div>
+    <div class="card-title">Data export</div>
+    <div class="form-row">
+      <div><label>Export Date Range</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <input type="date" id="exportFromDate" placeholder="From">
+          <input type="date" id="exportToDate" placeholder="To">
+        </div>
+      </div>
+    </div>
     <div class="button-group-col">
-      <button onclick="exportCSV()">Export CSV</button>
+      <button onclick="exportCSVRange()">Export CSV (Date Range)</button>
+      <button onclick="exportCSV()">Export CSV (All)</button>
       <button onclick="exportJSON()">Export JSON</button>
       <button onclick="document.getElementById('fileInput').click();">Restore backup</button>
     </div>
     <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importJSON(event)" />
     <div style="font-size: 12px; color: #5f5e5a; margin-top: 8px; padding: 8px; background: #f1efe8; border-radius: 4px;">
-      <strong>Total records:</strong> <span id="totalRecords">0</span> days tracked | <strong>Last export:</strong> <span id="lastExport">never</span>
+      <strong>Total records:</strong> <span id="totalRecords">0</span> days tracked
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TASK MODAL -->
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeEditModal()">&times;</span>
+    <div class="modal-title">Edit Task</div>
+    <div class="form-row">
+      <div><label>Task description</label><input type="text" id="editDesc" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>Start time</label><input type="time" id="editStart" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>End time</label><input type="time" id="editEnd" /></div>
+    </div>
+    <div class="form-row">
+      <div><label>Type</label>
+        <select id="editType">
+          <option value="task">Task</option>
+          <option value="break">Break</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>Blocker</label>
+        <select id="editBlocker">
+          <option value="">None</option>
+          <option value="waiting">Waiting on stage</option>
+          <option value="equipment">Equipment issue</option>
+          <option value="customer">Waiting on customer</option>
+          <option value="materials">Missing materials</option>
+          <option value="quality">Quality check</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="success" style="flex: 1;" onclick="saveEditTask()">Save</button>
+      <button class="danger-filled" style="flex: 1;" onclick="deleteTask()">Delete</button>
+      <button style="flex: 1;" onclick="closeEditModal()">Cancel</button>
     </div>
   </div>
 </div>
 
 <script>
   const STORAGE_KEY = 'utilization_tracker_data';
+  const TEMPLATES_KEY = 'task_templates';
   const ASSOCIATES = ['Fabricio Justiniano', 'Marizabeth Marquez', 'Ivey Carthorn', 'Lezlieth Gil', 'Odalys Aponte', 'Maurice Kicklighter', 'Nathaniel Brown', 'Steven Cox'];
   let allData = {};
   let selectedAssociates = [];
   let runningTasks = {};
+  let templates = {};
+  let editingTask = null;
 
   function init() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('trackDate').value = today;
     document.getElementById('filterDate').value = today;
+    document.getElementById('exportFromDate').value = today;
+    document.getElementById('exportToDate').value = today;
     document.getElementById('filterDate').addEventListener('change', updateDisplay);
     loadData();
+    loadTemplates();
     updateDisplay();
   }
 
@@ -178,19 +263,15 @@
     const label = document.getElementById(`checkbox_${assoc}`);
     
     if (!checkbox || !label) return;
-    
     checkbox.checked = !checkbox.checked;
     
     if (checkbox.checked) {
-      if (!selectedAssociates.includes(assoc)) {
-        selectedAssociates.push(assoc);
-      }
+      if (!selectedAssociates.includes(assoc)) selectedAssociates.push(assoc);
       label.classList.add('selected');
     } else {
       selectedAssociates = selectedAssociates.filter(a => a !== assoc);
       label.classList.remove('selected');
     }
-    
     updateDisplay();
   }
 
@@ -203,13 +284,29 @@
     }
   }
 
+  function loadTemplates() {
+    try {
+      const saved = localStorage.getItem(TEMPLATES_KEY);
+      templates = saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      templates = {};
+    }
+  }
+
   function saveData() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
     } catch (e) {
       console.error('Save failed', e);
     }
-    updateMetadata();
+  }
+
+  function saveTemplates() {
+    try {
+      localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+    } catch (e) {
+      console.error('Template save failed', e);
+    }
   }
 
   function getDateKey(associate) {
@@ -222,7 +319,19 @@
     return { hours: String(now.getHours()).padStart(2, '0'), minutes: String(now.getMinutes()).padStart(2, '0'), seconds: String(now.getSeconds()).padStart(2, '0') };
   }
 
-  function startTask(assoc) {
+  function addTemplate(assoc) {
+    const taskDesc = document.getElementById(`taskDesc_${assoc}`).value.trim();
+    if (!taskDesc) { alert('Enter task description'); return; }
+    templates[taskDesc] = true;
+    saveTemplates();
+    alert('Template saved: ' + taskDesc);
+  }
+
+  function loadTemplate(assoc, template) {
+    document.getElementById(`taskDesc_${assoc}`).value = template;
+  }
+
+  function startTask(assoc, isBreak = false) {
     const taskDesc = document.getElementById(`taskDesc_${assoc}`).value.trim();
     const errorEl = document.getElementById(`error_${assoc}`);
     if (!errorEl) return;
@@ -231,7 +340,7 @@
     if (!taskDesc) { errorEl.textContent = 'Enter task description'; return; }
 
     const time = getCurrentTime();
-    runningTasks[assoc] = { desc: taskDesc, startTime: `${time.hours}:${time.minutes}:${time.seconds}`, startHour: time.hours, startMin: time.minutes, startSec: time.seconds, blocker: document.getElementById(`blockerType_${assoc}`).value, blockerText: document.getElementById(`blockerText_${assoc}`).value };
+    runningTasks[assoc] = { desc: taskDesc, startTime: `${time.hours}:${time.minutes}:${time.seconds}`, startHour: time.hours, startMin: time.minutes, startSec: time.seconds, blocker: document.getElementById(`blockerType_${assoc}`).value, blockerText: document.getElementById(`blockerText_${assoc}`).value, isBreak: isBreak };
     
     const startDisplay = document.getElementById(`startDisplay_${assoc}`);
     if (startDisplay) {
@@ -244,7 +353,6 @@
   function endTask(assoc) {
     const errorEl = document.getElementById(`error_${assoc}`);
     if (errorEl) errorEl.textContent = '';
-
     if (!runningTasks[assoc]) { if (errorEl) errorEl.textContent = 'Task not started'; return; }
 
     const time = getCurrentTime();
@@ -261,7 +369,7 @@
     const dateKey = getDateKey(assoc);
     if (!allData[dateKey]) allData[dateKey] = { associate: assoc, date: document.getElementById('trackDate').value, tasks: [] };
     
-    allData[dateKey].tasks.push({ desc: runningTasks[assoc].desc, start: runningTasks[assoc].startTime, end: endTime, minutes, blocker, id: Date.now() });
+    allData[dateKey].tasks.push({ desc: runningTasks[assoc].desc, start: runningTasks[assoc].startTime, end: endTime, minutes, blocker, isBreak: runningTasks[assoc].isBreak || false, id: Date.now() });
 
     const taskDescEl = document.getElementById(`taskDesc_${assoc}`);
     if (taskDescEl) taskDescEl.value = '';
@@ -271,29 +379,112 @@
     if (blockerTextEl) blockerTextEl.value = '';
     const startDisplayEl = document.getElementById(`startDisplay_${assoc}`);
     if (startDisplayEl) startDisplayEl.classList.add('hidden');
-    const blockerInputRowEl = document.getElementById(`blockerInputRow_${assoc}`);
-    if (blockerInputRowEl) blockerInputRowEl.classList.add('hidden');
     
     delete runningTasks[assoc];
     saveData();
     updateDisplay();
   }
 
-  function toggleBlockerInput(assoc) {
-    const blocker = document.getElementById(`blockerType_${assoc}`).value;
-    const inputRow = document.getElementById(`blockerInputRow_${assoc}`);
-    if (blocker === 'other') {
-      inputRow.classList.remove('hidden');
-    } else {
-      inputRow.classList.add('hidden');
-      document.getElementById(`blockerText_${assoc}`).value = '';
-    }
+  function openEditModal(assoc, taskId) {
+    const dateKey = getDateKey(assoc);
+    const task = allData[dateKey].tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    editingTask = { assoc, taskId, dateKey };
+    document.getElementById('editDesc').value = task.desc;
+    document.getElementById('editStart').value = task.start;
+    document.getElementById('editEnd').value = task.end;
+    document.getElementById('editType').value = task.isBreak ? 'break' : 'task';
+    document.getElementById('editBlocker').value = task.blocker || '';
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+    editingTask = null;
+  }
+
+  function saveEditTask() {
+    if (!editingTask) return;
+    const task = allData[editingTask.dateKey].tasks.find(t => t.id === editingTask.taskId);
+    if (!task) return;
+    
+    task.desc = document.getElementById('editDesc').value;
+    task.start = document.getElementById('editStart').value;
+    task.end = document.getElementById('editEnd').value;
+    task.isBreak = document.getElementById('editType').value === 'break';
+    task.blocker = document.getElementById('editBlocker').value;
+    
+    saveData();
+    closeEditModal();
+    updateDisplay();
+  }
+
+  function deleteTask() {
+    if (!editingTask) return;
+    if (!confirm('Delete this task?')) return;
+    
+    allData[editingTask.dateKey].tasks = allData[editingTask.dateKey].tasks.filter(t => t.id !== editingTask.taskId);
+    saveData();
+    closeEditModal();
+    updateDisplay();
   }
 
   function updateDisplay() {
+    updateDashboard();
     updateAssociateSections();
     updateRunningTasks();
     setTimeout(function() { updateSummary(); }, 50);
+  }
+
+  function updateDashboard() {
+    const today = document.getElementById('trackDate').value;
+    let totalMin = 0, totalBreakMin = 0, totalTasks = 0;
+    
+    for (const key in allData) {
+      const [date, assoc] = key.split('|');
+      if (date === today) {
+        allData[key].tasks.forEach(t => {
+          if (t.isBreak) {
+            totalBreakMin += t.minutes;
+          } else {
+            totalMin += t.minutes;
+            totalTasks++;
+          }
+        });
+      }
+    }
+    
+    const totalHours = Math.round(totalMin / 60 * 10) / 10;
+    const breakHours = Math.round(totalBreakMin / 60 * 10) / 10;
+    const utilPercent = Math.round(totalMin / (480 * ASSOCIATES.length) * 100);
+    
+    const html = `
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-label">Total Tasks</div>
+          <div class="stat-value">${totalTasks}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Active Time</div>
+          <div class="stat-value">${totalHours}h</div>
+          <div class="stat-sub">+ ${breakHours}h breaks</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Team Util %</div>
+          <div class="stat-value">${utilPercent}%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Utilization</div>
+          <svg width="100" height="100" style="margin: 0 auto;">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#e0ddd4" stroke-width="8"/>
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#0F6E56" stroke-width="8" stroke-dasharray="${utilPercent * 2.827}" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+          </svg>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('dashboardContainer').innerHTML = html;
   }
 
   function updateRunningTasks() {
@@ -333,7 +524,8 @@
       const dateKey = getDateKey(assoc);
       const data = allData[dateKey] || { associate: assoc, tasks: [] };
       const tasks = data.tasks || [];
-      const totalMin = tasks.reduce((s, t) => s + t.minutes, 0);
+      const workTasks = tasks.filter(t => !t.isBreak);
+      const totalMin = workTasks.reduce((s, t) => s + t.minutes, 0);
       const util = Math.round(totalMin / 480 * 100);
       const isRunning = !!runningTasks[assoc];
 
@@ -344,22 +536,25 @@
           
           <div class="form-row"><div><label>Task description</label><input type="text" id="taskDesc_${assoc}" placeholder="e.g., Pick orders" /></div></div>
           
+          <div style="margin-bottom: 12px;">
+            <label>Task Templates:</label>
+            <div style="display: flex; flex-wrap: wrap;">
+              ${Object.keys(templates).map(t => `<button class="template-btn" onclick="loadTemplate('${assoc}', '${t}')">${t}</button>`).join('')}
+              <button class="template-btn" onclick="addTemplate('${assoc}')">+ Save Template</button>
+            </div>
+          </div>
+          
           <div class="form-row">
             <div><label>Blocker</label>
-              <select id="blockerType_${assoc}" onchange="toggleBlockerInput('${assoc}')">
+              <select id="blockerType_${assoc}">
                 <option value="">None</option>
                 <option value="waiting">Waiting on stage</option>
                 <option value="equipment">Equipment issue</option>
                 <option value="customer">Waiting on customer</option>
                 <option value="materials">Missing materials</option>
                 <option value="quality">Quality check</option>
-                <option value="other">Other</option>
               </select>
             </div>
-          </div>
-
-          <div class="form-row hidden" id="blockerInputRow_${assoc}">
-            <div><label>Describe the blocker</label><input type="text" id="blockerText_${assoc}" placeholder="Enter reason..." /></div>
           </div>
 
           <div class="time-display hidden" id="startDisplay_${assoc}"><span class="time-label">Started:</span> <span id="startTimeShow_${assoc}">--:--:--</span></div>
@@ -367,16 +562,20 @@
           <div id="error_${assoc}" class="error"></div>
           <div style="display: flex; gap: 8px; margin-top: 12px;">
             <button class="success" onclick="startTask('${assoc}')" style="flex: 1;" ${isRunning ? 'disabled' : ''}>Start task</button>
-            <button class="danger-filled" onclick="endTask('${assoc}')" style="flex: 1;" ${!isRunning ? 'disabled' : ''}>End task</button>
+            <button style="background: #FFA500; color: white; border-color: #FFA500;" onclick="startTask('${assoc}', true)" style="flex: 1;" ${isRunning ? 'disabled' : ''}>Start break</button>
+            <button class="danger-filled" onclick="endTask('${assoc}')" style="flex: 1;" ${!isRunning ? 'disabled' : ''}>End</button>
           </div>
 
           <div style="margin-top: 16px; padding-top: 12px; border-top: 0.5px solid #d3d1c7;">
-            <div style="font-size: 13px; font-weight: 600; color: #2c2c2a; margin-bottom: 8px;">Completed: ${tasks.length} | Active: ${Math.round(totalMin / 60 * 10) / 10}h | Util: ${util}%</div>
-            <div id="tasks_${assoc}">${tasks.length === 0 ? '<div class="empty-state" style="padding: 12px;">No tasks completed yet</div>' : tasks.map(t => `
+            <div style="font-size: 13px; font-weight: 600; color: #2c2c2a; margin-bottom: 8px;">Completed: ${workTasks.length} | Active: ${Math.round(totalMin / 60 * 10) / 10}h | Util: ${util}%</div>
+            <div id="tasks_${assoc}">${tasks.length === 0 ? '<div class="empty-state" style="padding: 12px;">No tasks yet</div>' : tasks.map(t => `
               <div class="task-item">
                 <div class="task-info">
-                  <p class="task-name">${t.desc}</p>
+                  <p class="task-name">${t.isBreak ? '<span class="break-badge">BREAK</span> ' : ''}${t.desc}</p>
                   <p class="task-time">${t.start} – ${t.end} (${t.minutes} min)${t.blocker ? ' 🚨 ' + t.blocker : ''}</p>
+                </div>
+                <div class="task-actions">
+                  <button class="small" onclick="openEditModal('${assoc}', ${t.id})">Edit</button>
                 </div>
               </div>
             `).join('')}</div>
@@ -388,34 +587,32 @@
 
   function updateSummary() {
     const summaryContainer = document.getElementById('summaryContainer');
-    const allTasksList = document.getElementById('allTasksList');
-    
-    if (!summaryContainer || !allTasksList) return;
+    if (!summaryContainer) return;
     
     if (selectedAssociates.length === 0) {
       summaryContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">↳</div>Select associates to begin tracking</div>';
+      updateLeaderboard();
       updateAllTasksList();
       return;
     }
 
-    let totalTasksAll = 0, totalMinAll = 0, allTasks = [];
+    let totalTasksAll = 0, totalMinAll = 0;
     
     selectedAssociates.forEach(assoc => {
       const dateKey = getDateKey(assoc);
       const data = allData[dateKey];
       
       if (data && data.tasks && Array.isArray(data.tasks)) {
-        const tasks = data.tasks;
-        totalTasksAll += tasks.length;
-        totalMinAll += tasks.reduce((s, t) => s + (t.minutes || 0), 0);
-        allTasks = allTasks.concat(tasks.map(t => ({ ...t, associate: assoc })));
+        const workTasks = data.tasks.filter(t => !t.isBreak);
+        totalTasksAll += workTasks.length;
+        totalMinAll += workTasks.reduce((s, t) => s + (t.minutes || 0), 0);
       }
     });
 
     const hoursAll = Math.round(totalMinAll / 60 * 10) / 10;
     const utilAll = Math.round(totalMinAll / (480 * selectedAssociates.length) * 100);
 
-    let summaryHTML = `
+    summaryContainer.innerHTML = `
       <div class="stats-grid">
         <div class="stat">
           <div class="stat-label">Total tasks</div>
@@ -428,9 +625,36 @@
         </div>
       </div>
     `;
-    
-    summaryContainer.innerHTML = summaryHTML;
+    updateLeaderboard();
     updateAllTasksList();
+  }
+
+  function updateLeaderboard() {
+    const leaderboardContainer = document.getElementById('leaderboardContainer');
+    const filterDate = document.getElementById('filterDate').value;
+    
+    let leaderboardData = [];
+    
+    ASSOCIATES.forEach(assoc => {
+      const dateKey = `${filterDate}|${assoc}`;
+      const data = allData[dateKey];
+      const workTasks = data && data.tasks ? data.tasks.filter(t => !t.isBreak) : [];
+      const totalMin = workTasks.reduce((s, t) => s + (t.minutes || 0), 0);
+      const util = Math.round(totalMin / 480 * 100);
+      leaderboardData.push({ assoc, util, tasks: workTasks.length });
+    });
+    
+    leaderboardData.sort((a, b) => b.util - a.util);
+    
+    leaderboardContainer.innerHTML = leaderboardData.map((item, idx) => `
+      <div class="leaderboard-item">
+        <div>
+          <div style="font-weight: 600;">${idx + 1}. ${item.assoc}</div>
+          <div style="font-size: 12px; color: #888780;">${item.tasks} tasks</div>
+        </div>
+        <div class="leaderboard-util">${item.util}%</div>
+      </div>
+    `).join('');
   }
 
   function updateAllTasksList() {
@@ -442,7 +666,6 @@
     let allTasks = [];
     
     if (selectedAssociates.length === 0) {
-      // Show ALL tasks from ALL associates for the selected filter date
       for (const key in allData) {
         const [date, assoc] = key.split('|');
         if (date === filterDate && allData[key].tasks && Array.isArray(allData[key].tasks)) {
@@ -452,7 +675,6 @@
         }
       }
     } else {
-      // Show tasks only for selected associates on the tracking date
       selectedAssociates.forEach(assoc => {
         const dateKey = `${filterDate}|${assoc}`;
         const data = allData[dateKey];
@@ -472,7 +694,7 @@
       allTasksHTML = allTasks.map(t => `
         <div class="task-item">
           <div class="task-info">
-            <p class="task-name">${t.desc}</p>
+            <p class="task-name">${t.isBreak ? '<span class="break-badge">BREAK</span> ' : ''}${t.desc}</p>
             <p class="task-time"><strong>${t.associate.split(' ')[0]}</strong> | ${t.start} – ${t.end} (${t.minutes} min)${t.blocker ? ' 🚨 ' + t.blocker : ''}</p>
           </div>
         </div>
@@ -482,21 +704,61 @@
     allTasksList.innerHTML = allTasksHTML;
   }
 
+  function exportCSVRange() {
+    const fromDate = document.getElementById('exportFromDate').value;
+    const toDate = document.getElementById('exportToDate').value;
+    
+    if (!fromDate || !toDate) { alert('Select date range'); return; }
+    if (Object.keys(allData).length === 0) { alert('No data to export'); return; }
+    
+    let csv = 'Date,Associate,Task,Type,Start,End,Minutes,Blocker,Utilization %\n';
+    
+    for (const key in allData) {
+      const [date, assoc] = key.split('|');
+      if (date >= fromDate && date <= toDate) {
+        const d = allData[key];
+        const workTasks = d.tasks.filter(t => !t.isBreak);
+        const totalMin = workTasks.reduce((s, t) => s + t.minutes, 0);
+        const util = Math.round(totalMin / 480 * 100);
+        
+        d.tasks.forEach(t => {
+          const type = t.isBreak ? 'BREAK' : 'TASK';
+          const blockers = t.blocker || 'None';
+          csv += `"${date}","${assoc}","${t.desc}","${type}","${t.start}","${t.end}",${t.minutes},"${blockers}",${util}%\n`;
+        });
+      }
+    }
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `utilization_${fromDate}_to_${toDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function exportCSV() {
     if (Object.keys(allData).length === 0) { alert('No data to export'); return; }
-    let csv = 'Date,Associate,Tasks,Active Time (min),Utilization %,Blockers\n';
+    let csv = 'Date,Associate,Task,Type,Start,End,Minutes,Blocker,Utilization %\n';
     for (const key in allData) {
+      const [date, assoc] = key.split('|');
       const d = allData[key];
-      const totalMin = d.tasks.reduce((s, t) => s + t.minutes, 0);
+      const workTasks = d.tasks.filter(t => !t.isBreak);
+      const totalMin = workTasks.reduce((s, t) => s + t.minutes, 0);
       const util = Math.round(totalMin / 480 * 100);
-      const blockers = d.tasks.filter(t => t.blocker).map(t => t.blocker).join('; ') || 'None';
-      csv += `"${d.date}","${d.associate}",${d.tasks.length},${totalMin},${util}%,"${blockers}"\n`;
+      
+      d.tasks.forEach(t => {
+        const type = t.isBreak ? 'BREAK' : 'TASK';
+        const blockers = t.blocker || 'None';
+        csv += `"${date}","${assoc}","${t.desc}","${type}","${t.start}","${t.end}",${t.minutes},"${blockers}",${util}%\n`;
+      });
     }
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `utilization_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `utilization_all_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -524,16 +786,11 @@
         updateDisplay();
         alert('Data restored successfully');
       } catch (err) {
-        alert('Invalid backup file');
+        alert('Import failed - invalid file');
       }
     };
     reader.readAsText(file);
     event.target.value = '';
-  }
-
-  function updateMetadata() {
-    document.getElementById('totalRecords').textContent = Object.keys(allData).length;
-    document.getElementById('lastExport').textContent = new Date().toLocaleTimeString();
   }
 
   init();
