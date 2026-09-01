@@ -1,0 +1,501 @@
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #2c2c2a; background: #faf8f3; }
+  .container { max-width: 100%; padding: 16px; }
+  .header { margin-bottom: 20px; text-align: center; }
+  .title { font-size: 20px; font-weight: 600; color: #2c2c2a; margin: 0; letter-spacing: -0.3px; }
+  .subtitle { font-size: 13px; color: #888780; margin: 4px 0 0 0; }
+  
+  .card { background: white; border: 0.5px solid #e0ddd4; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  .card-title { font-size: 14px; font-weight: 600; color: #2c2c2a; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .form-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+  label { display: block; font-size: 12px; color: #5f5e5a; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+  input[type="date"] { width: 100%; padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; font-size: 15px; background: white; color: #2c2c2a; }
+  input[type="date"]:focus { outline: none; border-color: #888780; background: white; }
+  
+  .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .checkbox-item { display: flex; align-items: center; gap: 10px; padding: 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; background: white; cursor: pointer; transition: all 0.2s; }
+  .checkbox-item:hover { background: #f1efe8; border-color: #888780; }
+  .checkbox-item.selected { background: #0F6E56; border-color: #0F6E56; }
+  .checkbox-item.selected .checkbox-label { color: white; }
+  .checkbox-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: #0F6E56; }
+  .checkbox-item.selected input[type="checkbox"] { accent-color: white; }
+  .checkbox-label { font-size: 14px; color: #2c2c2a; font-weight: 500; cursor: pointer; }
+  
+  button { padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; background: white; color: #2c2c2a; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  button:hover { background: #f1efe8; border-color: #888780; }
+  button.primary { background: #2c2c2a; color: white; border-color: #2c2c2a; }
+  button.primary:hover { background: #444441; }
+  button.success { background: #0F6E56; color: white; border-color: #0F6E56; font-weight: 600; }
+  button.success:hover { background: #085041; }
+  button.danger-filled { background: #A32D2D; color: white; border-color: #A32D2D; font-weight: 600; }
+  button.danger-filled:hover { background: #791F1F; }
+  
+  .running-task { background: #E1F5EE; border: 0.5px solid #0F6E56; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .running-task-info { flex: 1; }
+  .running-task-name { font-size: 14px; font-weight: 600; color: #2c2c2a; margin: 0; }
+  .running-task-details { font-size: 12px; color: #5f5e5a; margin: 4px 0 0 0; }
+  .running-task button { background: #A32D2D; color: white; border-color: #A32D2D; font-weight: 600; padding: 8px 12px; font-size: 12px; }
+  .running-task button:hover { background: #791F1F; }
+  
+  .time-display { font-size: 14px; font-weight: 600; color: #2c2c2a; background: #f1efe8; padding: 8px 12px; border-radius: 4px; margin-top: 6px; }
+  .time-label { font-size: 11px; color: #888780; text-transform: uppercase; letter-spacing: 0.3px; }
+  
+  .associate-section { background: #f1efe8; border: 0.5px solid #d3d1c7; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  .associate-header { font-size: 14px; font-weight: 600; color: #2c2c2a; margin: 0 0 12px 0; }
+  
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .stat { background: #f1efe8; padding: 12px; border-radius: 4px; text-align: center; }
+  .stat-label { font-size: 11px; color: #888780; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+  .stat-value { font-size: 24px; font-weight: 600; color: #2c2c2a; }
+  .stat-sub { font-size: 12px; color: #5f5e5a; margin-top: 4px; }
+  
+  .task-item { background: white; padding: 12px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 0.5px solid #d3d1c7; }
+  .task-info { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 500; color: #2c2c2a; margin: 0; }
+  .task-time { font-size: 12px; color: #5f5e5a; margin: 4px 0 0 0; }
+  
+  .empty-state { text-align: center; padding: 24px; color: #888780; }
+  .empty-state-icon { font-size: 32px; margin-bottom: 8px; }
+  .error { color: #d85a30; font-size: 12px; margin-top: 4px; }
+  .hidden { display: none; }
+  
+  .button-group-col { display: flex; flex-direction: column; gap: 8px; }
+  button { flex: 1; }
+  
+  select { width: 100%; padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; font-size: 15px; background: white; color: #2c2c2a; margin-bottom: 12px; }
+  select:focus { outline: none; border-color: #888780; }
+  
+  input[type="text"] { width: 100%; padding: 10px 12px; border: 0.5px solid #d3d1c7; border-radius: 4px; font-size: 15px; background: white; color: #2c2c2a; margin-bottom: 12px; }
+  input[type="text"]:focus { outline: none; border-color: #888780; background: white; }
+</style>
+
+<div class="container">
+  <div class="header">
+    <h1 class="title">Utilization tracker</h1>
+    <p class="subtitle">Track multiple associates with parallel tasks</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Select date & associates</div>
+    <div class="form-row">
+      <div><label>Date</label><input type="date" id="trackDate" /></div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Associates (tap to select)</label>
+        <div class="checkbox-grid">
+          <label class="checkbox-item" id="checkbox_Fabricio Justiniano" onclick="toggleAssociate('Fabricio Justiniano'); return false;">
+            <input type="checkbox" id="check_Fabricio Justiniano" value="Fabricio Justiniano" />
+            <span class="checkbox-label">Fabricio Justiniano</span>
+          </label>
+          <label class="checkbox-item" id="checkbox_Marizabeth Marquez" onclick="toggleAssociate('Marizabeth Marquez'); return false;">
+            <input type="checkbox" id="check_Marizabeth Marquez" value="Marizabeth Marquez" />
+            <span class="checkbox-label">Marizabeth Marquez</span>
+          </label>
+          <label class="checkbox-item" id="checkbox_Ivey Carthorn" onclick="toggleAssociate('Ivey Carthorn'); return false;">
+            <input type="checkbox" id="check_Ivey Carthorn" value="Ivey Carthorn" />
+            <span class="checkbox-label">Ivey Carthorn</span>
+          </label>
+          <label class="checkbox-item" id="checkbox_Lezlieth Gil" onclick="toggleAssociate('Lezlieth Gil'); return false;">
+            <input type="checkbox" id="check_Lezlieth Gil" value="Lezlieth Gil" />
+            <span class="checkbox-label">Lezlieth Gil</span>
+          </label>
+          <label class="checkbox-item" id="checkbox_Odalys Aponte" onclick="toggleAssociate('Odalys Aponte'); return false;">
+            <input type="checkbox" id="check_Odalys Aponte" value="Odalys Aponte" />
+            <span class="checkbox-label">Odalys Aponte</span>
+          </label>
+          <label class="checkbox-item" id="checkbox_Maurice Kicklighter" onclick="toggleAssociate('Maurice Kicklighter'); return false;">
+            <input type="checkbox" id="check_Maurice Kicklighter" value="Maurice Kicklighter" />
+            <span class="checkbox-label">Maurice Kicklighter</span>
+          </label>
+          <label class="checkbox-item" id="checkbox_Nathaniel Brown" onclick="toggleAssociate('Nathaniel Brown'); return false;">
+            <input type="checkbox" id="check_Nathaniel Brown" value="Nathaniel Brown" />
+            <span class="checkbox-label">Nathaniel Brown</span>
+          </label>
+          <label class="checkbox-item" id="checkbox_Steven Cox" onclick="toggleAssociate('Steven Cox'); return false;">
+            <input type="checkbox" id="check_Steven Cox" value="Steven Cox" />
+            <span class="checkbox-label">Steven Cox</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="runningTasksCard" style="display: none;">
+    <div class="card-title">Currently running tasks</div>
+    <div id="runningTasksList"></div>
+  </div>
+
+  <div id="associateSections"></div>
+
+  <div class="card">
+    <div class="card-title">Daily summary</div>
+    <div id="summaryContainer"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">All tasks today</div>
+    <div id="allTasksList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Data export & backup</div>
+    <div class="button-group-col">
+      <button onclick="exportCSV()">Export CSV</button>
+      <button onclick="exportJSON()">Export JSON</button>
+      <button onclick="document.getElementById('fileInput').click();">Restore backup</button>
+    </div>
+    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importJSON(event)" />
+    <div style="font-size: 12px; color: #5f5e5a; margin-top: 8px; padding: 8px; background: #f1efe8; border-radius: 4px;">
+      <strong>Total records:</strong> <span id="totalRecords">0</span> days tracked | <strong>Last export:</strong> <span id="lastExport">never</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'utilization_tracker_data';
+  const ASSOCIATES = ['Fabricio Justiniano', 'Marizabeth Marquez', 'Ivey Carthorn', 'Lezlieth Gil', 'Odalys Aponte', 'Maurice Kicklighter', 'Nathaniel Brown', 'Steven Cox'];
+  let allData = {};
+  let selectedAssociates = [];
+  let runningTasks = {};
+
+  function init() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('trackDate').value = today;
+    loadData();
+    updateDisplay();
+  }
+
+  function toggleAssociate(assoc) {
+    const checkbox = document.getElementById(`check_${assoc}`);
+    const label = document.getElementById(`checkbox_${assoc}`);
+    
+    if (!checkbox || !label) return;
+    
+    checkbox.checked = !checkbox.checked;
+    
+    if (checkbox.checked) {
+      if (!selectedAssociates.includes(assoc)) {
+        selectedAssociates.push(assoc);
+      }
+      label.classList.add('selected');
+    } else {
+      selectedAssociates = selectedAssociates.filter(a => a !== assoc);
+      label.classList.remove('selected');
+    }
+    
+    updateDisplay();
+  }
+
+  function loadData() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      allData = saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      allData = {};
+    }
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+    } catch (e) {
+      console.error('Save failed', e);
+    }
+    updateMetadata();
+  }
+
+  function getDateKey(associate) {
+    const date = document.getElementById('trackDate').value;
+    return `${date}|${associate}`;
+  }
+
+  function getCurrentTime() {
+    const now = new Date();
+    return { hours: String(now.getHours()).padStart(2, '0'), minutes: String(now.getMinutes()).padStart(2, '0'), seconds: String(now.getSeconds()).padStart(2, '0') };
+  }
+
+  function startTask(assoc) {
+    const taskDesc = document.getElementById(`taskDesc_${assoc}`).value.trim();
+    const errorEl = document.getElementById(`error_${assoc}`);
+    if (!errorEl) return;
+    errorEl.textContent = '';
+
+    if (!taskDesc) { errorEl.textContent = 'Enter task description'; return; }
+
+    const time = getCurrentTime();
+    runningTasks[assoc] = { desc: taskDesc, startTime: `${time.hours}:${time.minutes}:${time.seconds}`, startHour: time.hours, startMin: time.minutes, startSec: time.seconds, blocker: document.getElementById(`blockerType_${assoc}`).value, blockerText: document.getElementById(`blockerText_${assoc}`).value };
+    
+    const startDisplay = document.getElementById(`startDisplay_${assoc}`);
+    if (startDisplay) {
+      startDisplay.classList.remove('hidden');
+      document.getElementById(`startTimeShow_${assoc}`).textContent = runningTasks[assoc].startTime;
+    }
+    updateDisplay();
+  }
+
+  function endTask(assoc) {
+    const errorEl = document.getElementById(`error_${assoc}`);
+    if (errorEl) errorEl.textContent = '';
+
+    if (!runningTasks[assoc]) { if (errorEl) errorEl.textContent = 'Task not started'; return; }
+
+    const time = getCurrentTime();
+    const endTime = `${time.hours}:${time.minutes}:${time.seconds}`;
+    const startSec = parseInt(runningTasks[assoc].startHour) * 3600 + parseInt(runningTasks[assoc].startMin) * 60 + parseInt(runningTasks[assoc].startSec);
+    const endSec = parseInt(time.hours) * 3600 + parseInt(time.minutes) * 60 + parseInt(time.seconds);
+    
+    if (endSec <= startSec) { if (errorEl) errorEl.textContent = 'End time must be after start'; return; }
+
+    const minutes = Math.round((endSec - startSec) / 60);
+    let blocker = runningTasks[assoc].blocker;
+    if (blocker === 'other') blocker = `other: ${runningTasks[assoc].blockerText}`;
+
+    const dateKey = getDateKey(assoc);
+    if (!allData[dateKey]) allData[dateKey] = { associate: assoc, date: document.getElementById('trackDate').value, tasks: [] };
+    
+    allData[dateKey].tasks.push({ desc: runningTasks[assoc].desc, start: runningTasks[assoc].startTime, end: endTime, minutes, blocker, id: Date.now() });
+
+    const taskDescEl = document.getElementById(`taskDesc_${assoc}`);
+    if (taskDescEl) taskDescEl.value = '';
+    const blockerEl = document.getElementById(`blockerType_${assoc}`);
+    if (blockerEl) blockerEl.value = '';
+    const blockerTextEl = document.getElementById(`blockerText_${assoc}`);
+    if (blockerTextEl) blockerTextEl.value = '';
+    const startDisplayEl = document.getElementById(`startDisplay_${assoc}`);
+    if (startDisplayEl) startDisplayEl.classList.add('hidden');
+    const blockerInputRowEl = document.getElementById(`blockerInputRow_${assoc}`);
+    if (blockerInputRowEl) blockerInputRowEl.classList.add('hidden');
+    
+    delete runningTasks[assoc];
+    saveData();
+    updateDisplay();
+  }
+
+  function toggleBlockerInput(assoc) {
+    const blocker = document.getElementById(`blockerType_${assoc}`).value;
+    const inputRow = document.getElementById(`blockerInputRow_${assoc}`);
+    if (blocker === 'other') {
+      inputRow.classList.remove('hidden');
+    } else {
+      inputRow.classList.add('hidden');
+      document.getElementById(`blockerText_${assoc}`).value = '';
+    }
+  }
+
+  function updateDisplay() {
+    updateAssociateSections();
+    updateRunningTasks();
+    setTimeout(function() { updateSummary(); }, 50);
+  }
+
+  function updateRunningTasks() {
+    const runningCard = document.getElementById('runningTasksCard');
+    const runningList = document.getElementById('runningTasksList');
+    const runningAssocs = Object.keys(runningTasks);
+
+    if (runningAssocs.length === 0) {
+      runningCard.style.display = 'none';
+      return;
+    }
+
+    runningCard.style.display = 'block';
+    runningList.innerHTML = runningAssocs.map(assoc => {
+      const task = runningTasks[assoc];
+      return `
+        <div class="running-task">
+          <div class="running-task-info">
+            <p class="running-task-name">${assoc}</p>
+            <p class="running-task-details">${task.desc} | Started: ${task.startTime}</p>
+          </div>
+          <button onclick="endTask('${assoc}')">End</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateAssociateSections() {
+    const container = document.getElementById('associateSections');
+    
+    if (selectedAssociates.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = selectedAssociates.map(assoc => {
+      const dateKey = getDateKey(assoc);
+      const data = allData[dateKey] || { associate: assoc, tasks: [] };
+      const tasks = data.tasks || [];
+      const totalMin = tasks.reduce((s, t) => s + t.minutes, 0);
+      const util = Math.round(totalMin / 480 * 100);
+      const isRunning = !!runningTasks[assoc];
+
+      return `
+        <div class="associate-section">
+          <div class="associate-header">${assoc}</div>
+          <div class="card-title" style="margin-top: 0; font-size: 12px;">Task Log</div>
+          
+          <div class="form-row"><div><label>Task description</label><input type="text" id="taskDesc_${assoc}" placeholder="e.g., Pick orders" /></div></div>
+          
+          <div class="form-row">
+            <div><label>Blocker</label>
+              <select id="blockerType_${assoc}" onchange="toggleBlockerInput('${assoc}')">
+                <option value="">None</option>
+                <option value="waiting">Waiting on stage</option>
+                <option value="equipment">Equipment issue</option>
+                <option value="customer">Waiting on customer</option>
+                <option value="materials">Missing materials</option>
+                <option value="quality">Quality check</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row hidden" id="blockerInputRow_${assoc}">
+            <div><label>Describe the blocker</label><input type="text" id="blockerText_${assoc}" placeholder="Enter reason..." /></div>
+          </div>
+
+          <div class="time-display hidden" id="startDisplay_${assoc}"><span class="time-label">Started:</span> <span id="startTimeShow_${assoc}">--:--:--</span></div>
+
+          <div id="error_${assoc}" class="error"></div>
+          <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <button class="success" onclick="startTask('${assoc}')" style="flex: 1;" ${isRunning ? 'disabled' : ''}>Start task</button>
+            <button class="danger-filled" onclick="endTask('${assoc}')" style="flex: 1;" ${!isRunning ? 'disabled' : ''}>End task</button>
+          </div>
+
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 0.5px solid #d3d1c7;">
+            <div style="font-size: 13px; font-weight: 600; color: #2c2c2a; margin-bottom: 8px;">Completed: ${tasks.length} | Active: ${Math.round(totalMin / 60 * 10) / 10}h | Util: ${util}%</div>
+            <div id="tasks_${assoc}">${tasks.length === 0 ? '<div class="empty-state" style="padding: 12px;">No tasks completed yet</div>' : tasks.map(t => `
+              <div class="task-item">
+                <div class="task-info">
+                  <p class="task-name">${t.desc}</p>
+                  <p class="task-time">${t.start} – ${t.end} (${t.minutes} min)${t.blocker ? ' 🚨 ' + t.blocker : ''}</p>
+                </div>
+              </div>
+            `).join('')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateSummary() {
+    const summaryContainer = document.getElementById('summaryContainer');
+    const allTasksList = document.getElementById('allTasksList');
+    
+    if (!summaryContainer || !allTasksList) return;
+    
+    if (selectedAssociates.length === 0) {
+      summaryContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">↳</div>Select associates to begin tracking</div>';
+      allTasksList.innerHTML = '';
+      return;
+    }
+
+    let totalTasksAll = 0, totalMinAll = 0, allTasks = [];
+    
+    selectedAssociates.forEach(assoc => {
+      const dateKey = getDateKey(assoc);
+      const data = allData[dateKey];
+      
+      if (data && data.tasks && Array.isArray(data.tasks)) {
+        const tasks = data.tasks;
+        totalTasksAll += tasks.length;
+        totalMinAll += tasks.reduce((s, t) => s + (t.minutes || 0), 0);
+        allTasks = allTasks.concat(tasks.map(t => ({ ...t, associate: assoc })));
+      }
+    });
+
+    const hoursAll = Math.round(totalMinAll / 60 * 10) / 10;
+    const utilAll = Math.round(totalMinAll / (480 * selectedAssociates.length) * 100);
+
+    let summaryHTML = `
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-label">Total tasks</div>
+          <div class="stat-value">${totalTasksAll}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Combined time</div>
+          <div class="stat-value">${hoursAll}h</div>
+          <div class="stat-sub">across ${selectedAssociates.length} associate(s)</div>
+        </div>
+      </div>
+    `;
+    
+    summaryContainer.innerHTML = summaryHTML;
+
+    let allTasksHTML = '';
+    if (allTasks.length === 0) {
+      allTasksHTML = '<div class="empty-state"><div class="empty-state-icon">↳</div>No tasks logged yet</div>';
+    } else {
+      allTasksHTML = allTasks.map(t => `
+        <div class="task-item">
+          <div class="task-info">
+            <p class="task-name">${t.desc}</p>
+            <p class="task-time"><strong>${t.associate.split(' ')[0]}</strong> | ${t.start} – ${t.end} (${t.minutes} min)${t.blocker ? ' 🚨 ' + t.blocker : ''}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    allTasksList.innerHTML = allTasksHTML;
+  }
+
+  function exportCSV() {
+    if (Object.keys(allData).length === 0) { alert('No data to export'); return; }
+    let csv = 'Date,Associate,Tasks,Active Time (min),Utilization %,Blockers\n';
+    for (const key in allData) {
+      const d = allData[key];
+      const totalMin = d.tasks.reduce((s, t) => s + t.minutes, 0);
+      const util = Math.round(totalMin / 480 * 100);
+      const blockers = d.tasks.filter(t => t.blocker).map(t => t.blocker).join('; ') || 'None';
+      csv += `"${d.date}","${d.associate}",${d.tasks.length},${totalMin},${util}%,"${blockers}"\n`;
+    }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `utilization_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportJSON() {
+    if (Object.keys(allData).length === 0) { alert('No data to export'); return; }
+    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `utilization_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target.result);
+        allData = { ...allData, ...imported };
+        saveData();
+        updateDisplay();
+        alert('Data restored successfully');
+      } catch (err) {
+        alert('Invalid backup file');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  function updateMetadata() {
+    document.getElementById('totalRecords').textContent = Object.keys(allData).length;
+    document.getElementById('lastExport').textContent = new Date().toLocaleTimeString();
+  }
+
+  init();
+</script>
