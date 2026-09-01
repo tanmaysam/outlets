@@ -101,41 +101,18 @@
     </div>
     <div class="form-row">
       <div>
-        <label>Associates (tap to select)</label>
-        <div class="checkbox-grid">
-          <label class="checkbox-item" id="checkbox_Fabricio Justiniano" onclick="toggleAssociate('Fabricio Justiniano'); return false;">
-            <input type="checkbox" id="check_Fabricio Justiniano" />
-            <span class="checkbox-label">Fabricio Justiniano</span>
-          </label>
-          <label class="checkbox-item" id="checkbox_Marizabeth Marquez" onclick="toggleAssociate('Marizabeth Marquez'); return false;">
-            <input type="checkbox" id="check_Marizabeth Marquez" />
-            <span class="checkbox-label">Marizabeth Marquez</span>
-          </label>
-          <label class="checkbox-item" id="checkbox_Ivey Carthorn" onclick="toggleAssociate('Ivey Carthorn'); return false;">
-            <input type="checkbox" id="check_Ivey Carthorn" />
-            <span class="checkbox-label">Ivey Carthorn</span>
-          </label>
-          <label class="checkbox-item" id="checkbox_Lezlieth Gil" onclick="toggleAssociate('Lezlieth Gil'); return false;">
-            <input type="checkbox" id="check_Lezlieth Gil" />
-            <span class="checkbox-label">Lezlieth Gil</span>
-          </label>
-          <label class="checkbox-item" id="checkbox_Odalys Aponte" onclick="toggleAssociate('Odalys Aponte'); return false;">
-            <input type="checkbox" id="check_Odalys Aponte" />
-            <span class="checkbox-label">Odalys Aponte</span>
-          </label>
-          <label class="checkbox-item" id="checkbox_Maurice Kicklighter" onclick="toggleAssociate('Maurice Kicklighter'); return false;">
-            <input type="checkbox" id="check_Maurice Kicklighter" />
-            <span class="checkbox-label">Maurice Kicklighter</span>
-          </label>
-          <label class="checkbox-item" id="checkbox_Nathaniel Brown" onclick="toggleAssociate('Nathaniel Brown'); return false;">
-            <input type="checkbox" id="check_Nathaniel Brown" />
-            <span class="checkbox-label">Nathaniel Brown</span>
-          </label>
-          <label class="checkbox-item" id="checkbox_Steven Cox" onclick="toggleAssociate('Steven Cox'); return false;">
-            <input type="checkbox" id="check_Steven Cox" />
-            <span class="checkbox-label">Steven Cox</span>
-          </label>
-        </div>
+        <label>Select Associate</label>
+        <select id="associateSelect" onchange="selectAssociateFromDropdown()">
+          <option value="">-- Choose Associate --</option>
+          <option value="Fabricio Justiniano">Fabricio Justiniano</option>
+          <option value="Marizabeth Marquez">Marizabeth Marquez</option>
+          <option value="Ivey Carthorn">Ivey Carthorn</option>
+          <option value="Lezlieth Gil">Lezlieth Gil</option>
+          <option value="Odalys Aponte">Odalys Aponte</option>
+          <option value="Maurice Kicklighter">Maurice Kicklighter</option>
+          <option value="Nathaniel Brown">Nathaniel Brown</option>
+          <option value="Steven Cox">Steven Cox</option>
+        </select>
       </div>
     </div>
   </div>
@@ -243,15 +220,19 @@
     </div>
     <div class="form-row">
       <div><label>Blocker</label>
-        <select id="editBlocker">
+        <select id="editBlocker" onchange="toggleEditBlockerInput()">
           <option value="">None</option>
           <option value="waiting">Waiting on stage</option>
           <option value="equipment">Equipment issue</option>
           <option value="customer">Waiting on customer</option>
           <option value="materials">Missing materials</option>
           <option value="quality">Quality check</option>
+          <option value="other">Other</option>
         </select>
       </div>
+    </div>
+    <div class="form-row hidden" id="editBlockerInputRow">
+      <div><label>Describe the blocker</label><input type="text" id="editBlockerText" placeholder="Enter reason..." /></div>
     </div>
     <div class="modal-buttons">
       <button class="success" style="flex: 1;" onclick="saveEditTask()">Save</button>
@@ -283,19 +264,12 @@
     updateDisplay();
   }
 
-  function toggleAssociate(assoc) {
-    const checkbox = document.getElementById(`check_${assoc}`);
-    const label = document.getElementById(`checkbox_${assoc}`);
-    
-    if (!checkbox || !label) return;
-    checkbox.checked = !checkbox.checked;
-    
-    if (checkbox.checked) {
-      if (!selectedAssociates.includes(assoc)) selectedAssociates.push(assoc);
-      label.classList.add('selected');
+  function selectAssociateFromDropdown() {
+    const assoc = document.getElementById('associateSelect').value;
+    if (assoc === '') {
+      selectedAssociates = [];
     } else {
-      selectedAssociates = selectedAssociates.filter(a => a !== assoc);
-      label.classList.remove('selected');
+      selectedAssociates = [assoc];
     }
     updateDisplay();
   }
@@ -354,6 +328,17 @@
 
   function loadTemplate(assoc, template) {
     document.getElementById(`taskDesc_${assoc}`).value = template;
+  }
+
+  function toggleBlockerInput(assoc) {
+    const blocker = document.getElementById(`blockerType_${assoc}`).value;
+    const inputRow = document.getElementById(`blockerInputRow_${assoc}`);
+    if (blocker === 'other') {
+      inputRow.classList.remove('hidden');
+    } else {
+      inputRow.classList.add('hidden');
+      document.getElementById(`blockerText_${assoc}`).value = '';
+    }
   }
 
   function startTask(assoc, isBreak = false) {
@@ -523,8 +508,8 @@
     allData[dateKey].tasks.push({ desc: 'Break', start: runningTasks[assoc].startTime, end: endTime, minutes, blocker: '', isBreak: true, id: Date.now() });
     
     delete runningTasks[assoc];
-    document.getElementById('breakStatusContainer').innerHTML = '';
     saveData();
+    updateBreakStatus();
     updateDisplay();
   }
 
@@ -532,6 +517,7 @@
     updateDashboard();
     updateAssociateSections();
     updateRunningTasks();
+    updateBreakStatus();
     setTimeout(function() { updateSummary(); }, 50);
   }
 
@@ -558,7 +544,7 @@
     const utilPercent = Math.round(totalMin / (480 * ASSOCIATES.length) * 100);
     
     const html = `
-      <div class="stats-grid">
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
         <div class="stat">
           <div class="stat-label">Total Tasks</div>
           <div class="stat-value">${totalTasks}</div>
@@ -571,13 +557,6 @@
         <div class="stat">
           <div class="stat-label">Team Util %</div>
           <div class="stat-value">${utilPercent}%</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Utilization</div>
-          <svg width="100" height="100" style="margin: 0 auto;">
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#e0ddd4" stroke-width="8"/>
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#0F6E56" stroke-width="8" stroke-dasharray="${utilPercent * 2.827}" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
-          </svg>
         </div>
       </div>
     `;
@@ -644,15 +623,20 @@
           
           <div class="form-row">
             <div><label>Blocker</label>
-              <select id="blockerType_${assoc}">
+              <select id="blockerType_${assoc}" onchange="toggleBlockerInput('${assoc}')">
                 <option value="">None</option>
                 <option value="waiting">Waiting on stage</option>
                 <option value="equipment">Equipment issue</option>
                 <option value="customer">Waiting on customer</option>
                 <option value="materials">Missing materials</option>
                 <option value="quality">Quality check</option>
+                <option value="other">Other</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-row hidden" id="blockerInputRow_${assoc}">
+            <div><label>Describe the blocker</label><input type="text" id="blockerText_${assoc}" placeholder="Enter reason..." /></div>
           </div>
 
           <div class="time-display hidden" id="startDisplay_${assoc}"><span class="time-label">Started:</span> <span id="startTimeShow_${assoc}">--:--:--</span></div>
